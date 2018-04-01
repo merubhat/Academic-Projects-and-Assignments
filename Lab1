@@ -1,0 +1,199 @@
+
+# Import packages
+
+import numpy as np
+import pandas as pd
+cd "C:\Users\NICSI\Desktop\BAP"
+#Extracting data from CSV
+df=pd.read_csv("ny .csv")
+df1=pd.read_csv("ny .csv",index_col=False)
+df.head()
+#dataframe.columns()
+df1.cand_id.unique
+
+#1) add column 'Party' to the  data frame using the dictionary on slide 33, Lecture 3
+parties = {'Clinton, Hillary Rodham':'Democrat', 'Sanders, Bernard':'Democrat', 'Trump, Donald J.':'Republican',
+       "O'Malley, Martin Joseph":'Democrat', "Cruz, Rafael Edward 'Ted'":'Republican',
+       'Walker, Scott':'Republican', 'Bush, Jeb':'Republican', 'Rubio, Marco':'Republican', 'Kasich, John R.':'Republican',
+       'Christie, Christopher J.':'Republican', 'Stein, Jill':'Green', 'Johnson, Gary':'Libertarian',
+       'Graham, Lindsey O.':'Republican', 'Webb, James Henry Jr.':'Democrat',
+       'Carson, Benjamin S.':'Republican', 'Paul, Rand':'Republican', 'Fiorina, Carly':'Republican',
+       'Santorum, Richard J.':'Republican', 'Jindal, Bobby':'Republican', 'Huckabee, Mike':'Republican',
+       'Pataki, George E.':'Republican', 'Gilmore, James S III':'Republican', 'Lessig, Lawrence':'Democrat',
+       'Perry, James R. (Rick)':'Republican', 'McMullin, Evan':'Independent'}
+
+df['party']=df.cand_id.map(parties)
+df['party']
+#2) convert the contb_receipt_dt column into an actual data object
+by_date = df1.iloc[:,10:11]
+
+#3)Using group by, show the number of donations given to each party
+
+df.party.value_counts()
+
+# >>> df.party.value_counts()
+# Democrat       574591
+# Republican      72983
+# Green            1001
+# Libertarian       782
+# Independent       103
+# Name: party, dtype: int64
+
+#4)Using group by, show the number of donations given to each party, by date
+
+by_date=df.groupby(['party','contb_receipt_amt'])['contbr_occupation'].count()
+
+by_date.head(10)
+
+df.groupby(['party','contb_receipt_amt'])['contbr_occupation'].sum()
+
+
+# >>> by_date.head(10)
+# party     contb_receipt_amt
+# Democrat  01-APR-16            1542
+#           01-AUG-15              69
+#           01-AUG-16            1074
+#           01-DEC-15             221
+#           01-DEC-16               6
+#           01-FEB-16             838
+#           01-JAN-16             146
+#           01-JUL-15             106
+#           01-JUL-16             852
+#           01-JUN-15             119
+
+
+#5)Using group by, show the total amount of donations given to each party
+
+df.groupby('party')['contbr_occupation'].sum()
+
+# >>> df.groupby('party')['contbr_occupation'].sum()
+# party
+# Democrat       1.536526e+08
+# Green          2.636641e+05
+# Independent    3.018750e+04
+# Libertarian    2.468605e+05
+# Republican     1.745958e+07
+# Name: contbr_occupation, dtype: float64
+
+#6)Using group by, show the total amount of donations given to each party, by date
+
+df['cont_date']=pd.to_datetime(df['contb_receipt_amt'])
+
+by_date1 = df.groupby(['party','cont_date'])['contbr_occupation'].sum()
+
+print(by_date1)
+by_date1.head(10)
+
+#>>> by_date1.head(10)
+# party     contb_receipt_amt
+# Democrat  01-APR-16            162457.05
+#           01-AUG-15             18560.33
+#           01-AUG-16            222029.56
+#           01-DEC-15             49278.58
+#           01-DEC-16              -205.00
+#           01-FEB-16            120723.92
+#           01-JAN-16             13554.18
+#           01-JUL-15             43183.01
+#           01-JUL-16             71783.59
+#           01-JUN-15            153522.56
+# Name: contbr_occupation, dtype: float64
+
+#7)Which occupations donated the top 5 most money?
+
+date=dataset['contbr_occupation'].groupby(dataset['contbr_employer']).agg('count')
+date.sort_values( ascending=False).head(5)
+
+# contbr_employer
+# RETIRED                  98667
+# NOT EMPLOYED             47994
+# ATTORNEY                 26486
+# INFORMATION REQUESTED    16956
+# TEACHER                  15080
+# Name: contbr_occupation, dtype: int64
+
+
+#8)Which occupations donated the least 5 amount of mone?
+date.sort_values( ascending=True).head(5)
+
+# contbr_employer
+# LAW STUDENT/SUMMER ASSOCIATE            1
+# INTERNATIONAL TOUR DIRECTOR/OPERATOR    1
+# INTERNATIONAL SALES REP                 1
+# INTERNATIONAL PUBLIC AFFAIRS            1
+# INTERNATIONAL MENSWEAR CONSULTANT       1
+# Name: contbr_occupation, dtype: int64
+
+#9)Which employer's employees gave the most money, give the top 5.
+''''df.columns
+df1.columns
+result3 =df1.groupby(['contbr_employer']).sum()
+result4 = result.reset_index()
+
+def top5_employers(group):
+    return group.sort_index(by='contb_receipt_amt')[-5:]
+
+result4.groupby('contbr_employer').apply(top5_employers).max()
+
+c=df1.groupby(['contbr_employer','contb_receipt_amt']).sum()
+print(c)
+'''
+
+# 10) For each candidate, what were the top 5 occupations that donated to their election
+empl=dataset['contbr_occupation'].groupby(dataset['contbr_zip']).agg('count')
+empl.sort_values( ascending=False).head(5)
+
+result =dataset.groupby(['cand_id','contbr_employer','contb_date']).sum()
+result2 = result.reset_index()
+
+def top5_donors(group):
+    return group.sort_index(by='contbr_employer')[-5:]
+    
+result2.groupby('cand_id').apply(top5_donors).drop('form_tp', 1).drop('cand_id', 1)
+
+# cand_id                                                                    
+# Bush, Jeb                 1648                         WRITER 2015-09-15   
+#                           1649                         WRITER 2015-09-16   
+#                           1650                         WRITER 2016-01-28   
+#                           1651    WRITER/DISTINGUISHED FELLOW 2015-09-07   
+#                           1652    WRITER/DISTINGUISHED FELLOW 2015-09-30   
+# Carson, Benjamin S.       4547                   YOUTH PASTOR 2015-08-27   
+#                           4548                   YOUTH PASTOR 2015-09-25   
+#                           4549                   YOUTH PASTOR 2015-10-14   
+#                           4550                   YOUTH PASTOR 2016-02-03   
+#                           4551                   YOUTH PASTOR 2016-02-17   
+# Christie, Christopher J.  4969                     VICE CHAIR 2015-12-13   
+#                           4970                 VICE PRESIDENT 2015-07-06   
+#                           4971                      VOLUNTEER 2015-07-29   
+#                           4972               VP NY OPERATIONS 2015-10-26   
+#                           4973                         WRITER 2015-11-25   
+# Clinton, Hillary Rodham   143535                    ZOOKEEPER 2016-08-21   
+#                           143534                    ZOOKEEPER 2016-08-01   
+#                           143533                    ZOOKEEPER 2016-07-02   
+#                           143536                    ZOOKEEPER 2016-09-06   
+#                           143542                    ZOOKEEPER 2016-11-02   
+# Cruz, Rafael Edward 'Ted' 151641                   X-RAY TECH 2015-09-29   
+#                           151644             X-RAY TECHNICIAN 2016-02-16   
+#                           151645             X-RAY TECHNICIAN 2016-02-25   
+#                           151643             X-RAY TECHNICIAN 2016-01-15   
+#                           151646           X-RAY TECHNOLOGIST 2016-04-23   
+# Fiorina, Carly            152517                       WRITER 2015-10-26   
+#                           152518                       WRITER 2015-11-25   
+#                           152519                       WRITER 2015-12-28   
+#                           152520                       WRITER 2016-01-11   
+#                           152521                       WRITER 2016-01-18 
+
+
+# 11) For the 5 candidates that raised the most money, graph their donations by time, in a line graph, similar to the chart on slide 39 on lecture 3 ppt
+pd.set_option('display.float_format', lambda x: '%.3f' % x)
+
+result2.groupby('cand_id').sum().drop('form_tp',1)
+date.sort_values('contbr_occupation', ascending=False).head(5)
+
+dataset['contb_date']=pd.to_datetime(dataset['contb_receipt_amt'])
+dataset.head(5)
+dataset['cont_date'] = dataset['cont_date'].to_string() 
+dataset['cont_date'].head(5)
+by_date = dataset.groupby(['party','cont_date'])['contbr_occupation'].sum()
+
+by_date.unstack('party').cumsum().plot()
+
